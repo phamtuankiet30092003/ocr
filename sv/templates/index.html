@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Quản Lý Hồ Sơ Học Sinh - OCR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-shadow {
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .processing {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-white bg-opacity-20 p-2 rounded-lg">
+                        <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold">Quản Lý Hồ Sơ Học Sinh</h1>
+                        <p class="text-sm opacity-90">Hệ thống OCR thông minh</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="bg-green-500 px-3 py-1 rounded-full text-sm font-medium">Online</span>
+                    <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                        <span class="font-bold">AD</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-6 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl card-shadow p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                        Tải Lên Tài Liệu
+                    </h2>
+                    
+                    <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer">
+<svg class="mx-auto h-12 w-12 text-gray-400 mb-4" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <p class="text-gray-600 mb-2">Kéo thả file hoặc click để chọn</p>
+                        <p class="text-sm text-gray-400">Hỗ trợ: JPG, PNG</p>
+                        <input type="file" id="fileInput" class="hidden" accept="image/*" multiple>
+                    </div>
+
+                    <div id="uploadedFiles" class="mt-4 space-y-2"></div>
+
+                    <button id="processBtn" class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span id="processText">Xử Lý OCR</span>
+                        <div id="processSpinner" class="hidden inline-block ml-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-xl card-shadow p-6 mt-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Thống Kê</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Tổng hồ sơ:</span>
+                            <span id="totalRecords" class="font-bold text-blue-600">0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Từ OCR:</span>
+                            <span id="ocrRecords" class="font-bold text-green-600">0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Thủ công:</span>
+                            <span id="manualRecords" class="font-bold text-orange-600">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl card-shadow p-6 mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Kết Quả OCR
+                    </h2>
+                    
+                    <div id="ocrResults" class="min-h-[200px] bg-gray-50 rounded-lg p-4">
+                        <div class="text-center text-gray-500 py-8">
+                            <svg class="mx-auto h-16 w-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            <p>Chưa có dữ liệu OCR</p>
+                            <p class="text-sm mt-1">Tải lên tài liệu để bắt đầu xử lý</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl card-shadow p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                            </svg>
+                            Danh Sách Học Sinh
+                        </h2>
+                        <div class="flex space-x-2">
+                            <button id="addStudentBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                + Thêm Học Sinh
+                            </button>
+                            <button id="exportBtn" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                Xuất Excel
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full table-auto">
+                            <thead>
+                                <tr class="bg-gray-50">
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">STT</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Họ Tên</th>
+<th class="px-4 py-3 text-left text-sm font-medium text-gray-700">MSSV/MSHS</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Ngành</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Nguồn</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentTableBody">
+                                <tr>
+                                    <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                                        <svg class="mx-auto h-12 w-12 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                                        </svg>
+                                        Chưa có dữ liệu học sinh
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="addStudentModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Thêm/Sửa Học Sinh</h3>
+            <form id="addStudentForm" class="space-y-4" enctype="multipart/form-data">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Họ Tên</label>
+                    <input type="text" id="studentName" name="name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">MSSV/MSHS</label>
+                    <input type="text" id="studentId" name="id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Ngành</label>
+                    <input type="text" id="studentMajor" name="major" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Bảng điểm (tuỳ chọn)</label>
+                    <input type="file" id="studentGradesFile" name="file" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <div class="flex space-x-3 pt-4">
+                    <button type="submit" id="modalSubmitBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors">
+                        Thêm
+                    </button>
+                    <button type="button" id="cancelAddBtn" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-lg font-medium transition-colors">
+                        Hủy
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '';
+        let students = [];
+        let uploadedFiles = [];
+        let editingStudentId = null;
+        
+        async function fetchStudents() {
+            try {
+                const response = await fetch(`${API_URL}/students`);
+                if (!response.ok) throw new Error('Failed to fetch students');
+                students = await response.json();
+                renderStudentTable();
+                updateStatistics();
+            } catch (error) {
+                showMessage(`❌ Lỗi kết nối đến server: ${error.message}`, 'error');
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', fetchStudents);
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const uploadedFilesDiv = document.getElementById('uploadedFiles');
+        const processBtn = document.getElementById('processBtn');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-blue-500', 'bg-blue-50');
+        });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+        });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            uploadedFiles = [];
+            uploadedFilesDiv.innerHTML = '';
+            
+            Array.from(files).forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    uploadedFiles.push(file);
+                    displayUploadedFile(file);
+                } else {
+                    showMessage(`⚠️ File ${file.name} không được hỗ trợ!`, 'warning');
+                }
+            });
+            updateProcessButton();
+        }
+
+        function displayUploadedFile(file) {
+            const fileDiv = document.createElement('div');
+            fileDiv.className = 'flex items-center justify-between bg-gray-50 p-3 rounded-lg mb-2';
+            fileDiv.innerHTML = `
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <div>
+                        <div class="text-sm text-gray-700">${file.name}</div>
+                        <div class="text-xs text-gray-500">${(file.size / 1024).toFixed(1)} KB</div>
+                    </div>
+                </div>
+                <button onclick="removeFile('${file.name}')" class="text-red-500 hover:text-red-700 p-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            `;
+            uploadedFilesDiv.appendChild(fileDiv);
+        }
+
+        function removeFile(fileName) {
+            uploadedFiles = uploadedFiles.filter(file => file.name !== fileName);
+            uploadedFilesDiv.innerHTML = '';
+            uploadedFiles.forEach(file => displayUploadedFile(file));
+            updateProcessButton();
+        }
+
+        function updateProcessButton() {
+            processBtn.disabled = uploadedFiles.length === 0;
+        }
+
+        processBtn.addEventListener('click', async () => {
+            if (uploadedFiles.length === 0) return;
+
+            const processText = document.getElementById('processText');
+            const processSpinner = document.getElementById('processSpinner');
+            const ocrResults = document.getElementById('ocrResults');
+            
+            processBtn.disabled = true;
+            processText.textContent = 'Đang xử lý OCR...';
+            processSpinner.classList.remove('hidden');
+            
+            ocrResults.innerHTML = '<div class="text-center py-8"><div class="processing text-blue-600 text-lg">🔍 Đang gửi file lên server...</div><div class="text-sm text-gray-500 mt-2">Vui lòng đợi trong giây lát</div></div>';
+
+            let allExtractedStudents = [];
+
+            try {
+                for (let i = 0; i < uploadedFiles.length; i++) {
+                    const file = uploadedFiles[i];
+                    ocrResults.innerHTML = `<div class="text-center py-8"><div class="processing text-blue-600 text-lg">🔍 Đang xử lý file ${i + 1}/${uploadedFiles.length}</div><div class="text-sm text-gray-500 mt-2">${file.name}</div></div>`;
+                    
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    const response = await fetch(`${API_URL}/ocr`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) throw new Error('Lỗi từ server');
+                    
+                    const data = await response.json();
+                    
+                    displayOCRResult(file.name, data.raw_text, data.student);
+                    allExtractedStudents.push(data.student);
+                    students = data.students; // Cập nhật danh sách từ server
+                }
+                
+                renderStudentTable();
+                updateStatistics();
+
+            } catch (error) {
+                ocrResults.innerHTML = `<div class="text-red-600 p-4 text-center">
+                    <div class="text-lg mb-2">❌ Lỗi xử lý OCR</div>
+                    <div class="text-sm">${error.message}</div>
+                    <div class="text-xs mt-2 text-gray-500">Vui lòng thử lại với ảnh rõ nét hơn</div>
+                </div>`;
+            }
+
+            processBtn.disabled = false;
+            processText.textContent = 'Xử Lý OCR';
+            processSpinner.classList.add('hidden');
+        });
+
+        function displayOCRResult(fileName, text, student) {
+            const ocrResults = document.getElementById('ocrResults');
+            if (ocrResults.innerHTML.includes('Chưa có dữ liệu OCR') || ocrResults.innerHTML.includes('Đang nhận diện') || ocrResults.innerHTML.includes('Đang xử lý') || ocrResults.innerHTML.includes('Đang gửi file')) {
+                ocrResults.innerHTML = '';
+            }
+
+            let gradesHTML = '';
+            if (student.grades && student.grades.length > 0) {
+                gradesHTML = `
+                    <div class="mt-2">
+                        <div class="font-medium text-blue-800 mb-1">📊 Điểm các môn:</div>
+                        <ul class="list-disc list-inside text-blue-700">
+                            ${student.grades.map(g => `<li>${g.subject}: <strong>${g.score}</strong></li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'mb-4 p-4 border border-gray-200 rounded-lg bg-white';
+            resultDiv.innerHTML = `
+                <div class="flex items-center justify-between mb-2">
+                    <h4 class="font-medium text-gray-800">📄 ${fileName}</h4>
+                    <span class="text-xs text-gray-500">${text.length} ký tự</span>
+                </div>
+                <div class="bg-gray-50 p-3 rounded border text-sm text-gray-700 max-h-40 overflow-y-auto">
+                    ${text.replace(/\n/g, '<br>') || '<em class="text-gray-400">Không nhận diện được văn bản</em>'}
+                </div>
+                <div class="mt-2 p-3 bg-green-100 rounded-lg text-sm">
+                    <div class="font-medium text-green-800">✅ Đã trích xuất:</div>
+                    <ul class="list-disc list-inside text-green-700">
+                        <li><strong>Họ Tên:</strong> ${student.name}</li>
+                        <li><strong>MSSV/MSHS:</strong> ${student.id}</li>
+                        <li><strong>Ngành:</strong> ${student.major}</li>
+                    </ul>
+                    ${gradesHTML}
+                </div>
+            `;
+            ocrResults.appendChild(resultDiv);
+        }
+        
+        function showOCRSummary(extractedStudents) {
+            // Không cần hàm này nữa vì thông tin được hiển thị chi tiết trong displayOCRResult
+        }
+
+        // Student management
+        async function addStudent(name, id, major, source = 'Thủ công') {
+            try {
+                const response = await fetch(`${API_URL}/students`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, id, major: major, source })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error);
+                }
+                
+                await fetchStudents();
+                showMessage(`✅ Đã thêm học sinh ${name}!`, 'success');
+                return true;
+            } catch (error) {
+                showMessage(`⚠️ Lỗi: ${error.message}`, 'warning');
+                return false;
+            }
+        }
+
+        function renderStudentTable() {
+            const tbody = document.getElementById('studentTableBody');
+            
+            if (students.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                            <svg class="mx-auto h-12 w-12 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                            </svg>
+                            <div>Chưa có dữ liệu học sinh</div>
+                            <div class="text-sm mt-1">Tải lên ảnh hoặc thêm thủ công</div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = students.map((student, index) => `
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="px-4 py-3 text-sm text-gray-700">${index + 1}</td>
+                    <td class="px-4 py-3 text-sm font-medium text-gray-900">${student.name}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700 font-mono">${student.id}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">${student.major}</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-1 text-xs font-medium rounded-full ${getSourceColor(student.source)}">
+                            ${student.source}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <button onclick="editStudent('${student.id}')" class="text-blue-600 hover:text-blue-800 mr-2 p-1" title="Sửa">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                        </button>
+                        <button onclick="deleteStudent('${student.id}')" class="text-red-600 hover:text-red-800 p-1" title="Xóa">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getSourceColor(source) {
+            switch (source) {
+                case 'OCR': return 'bg-blue-100 text-blue-800';
+                case 'Thủ công': return 'bg-green-100 text-green-800';
+                default: return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        function updateStatistics() {
+            document.getElementById('totalRecords').textContent = students.length;
+            document.getElementById('ocrRecords').textContent = students.filter(s => s.source === 'OCR').length;
+            document.getElementById('manualRecords').textContent = students.filter(s => s.source === 'Thủ công').length;
+        }
+
+        async function deleteStudent(id) {
+            const student = students.find(s => s.id === id);
+            if (student && confirm(`🗑️ Bạn có chắc chắn muốn xóa học sinh "${student.name}"?`)) {
+                try {
+                    const response = await fetch(`${API_URL}/students/${id}`, { method: 'DELETE' });
+                    if (!response.ok) throw new Error('Failed to delete student');
+                    await fetchStudents();
+                    showMessage('✅ Đã xóa học sinh!', 'success');
+                } catch (error) {
+                    showMessage(`❌ Lỗi: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        function editStudent(id) {
+            const student = students.find(s => s.id === id);
+            if (student) {
+                editingStudentId = id;
+                document.getElementById('studentName').value = student.name;
+                document.getElementById('studentId').value = student.id;
+                document.getElementById('studentMajor').value = student.major;
+                document.getElementById('modalSubmitBtn').textContent = 'Cập nhật';
+                document.getElementById('addStudentModal').classList.remove('hidden');
+            }
+        }
+
+        document.getElementById('addStudentBtn').addEventListener('click', () => {
+            editingStudentId = null;
+            document.getElementById('addStudentForm').reset();
+            document.getElementById('modalSubmitBtn').textContent = 'Thêm';
+            document.getElementById('addStudentModal').classList.remove('hidden');
+        });
+
+        document.getElementById('cancelAddBtn').addEventListener('click', () => {
+            document.getElementById('addStudentModal').classList.add('hidden');
+            editingStudentId = null;
+        });
+
+        document.getElementById('addStudentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('studentName').value.trim();
+            const id = document.getElementById('studentId').value.trim();
+            const major = document.getElementById('studentMajor').value.trim();
+            const gradesFile = document.getElementById('studentGradesFile').files[0];
+
+            if (editingStudentId) {
+                // Sửa học sinh: vẫn dùng JSON như cũ
+                try {
+                    const response = await fetch(`${API_URL}/students/${editingStudentId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, id, major: major })
+                    });
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error);
+                    }
+                    await fetchStudents();
+                    showMessage('✅ Đã cập nhật thông tin!', 'success');
+                } catch (error) {
+                    showMessage(`❌ Lỗi: ${error.message}`, 'error');
+                }
+            } else {
+                // Thêm mới: gửi form-data (có thể có file)
+                try {
+                    const formData = new FormData();
+                    formData.append('name', name);
+                    formData.append('id', id);
+                    formData.append('major', major);
+                    if (gradesFile) formData.append('file', gradesFile);
+
+                    const response = await fetch(`${API_URL}/students`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error);
+                    }
+                    await fetchStudents();
+                    showMessage(`✅ Đã thêm học sinh ${name}!`, 'success');
+                } catch (error) {
+                    showMessage(`⚠️ Lỗi: ${error.message}`, 'warning');
+                }
+            }
+
+            document.getElementById('addStudentModal').classList.add('hidden');
+            editingStudentId = null;
+        });
+
+        document.getElementById('exportBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch(`${API_URL}/export`);
+                if (!response.ok) throw new Error('Không có dữ liệu để xuất');
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `danh_sach_hoc_sinh_${new Date().toISOString().split('T')[0]}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                showMessage('📊 Đã xuất file thành công!', 'success');
+
+            } catch (error) {
+                showMessage(`⚠️ Lỗi: ${error.message}`, 'warning');
+            }
+        });
+
+        function showMessage(message, type = 'info') {
+            const messageDiv = document.createElement('div');
+            const colors = {
+                success: 'bg-green-500',
+                warning: 'bg-orange-500',
+                error: 'bg-red-500',
+                info: 'bg-blue-500'
+            };
+            
+            messageDiv.className = `fixed top-4 right-4 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300`;
+            messageDiv.textContent = message;
+            document.body.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => messageDiv.remove(), 300);
+            }, 3000);
+        }
+
+        document.getElementById('addStudentModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                document.getElementById('addStudentModal').classList.add('hidden');
+                editingStudentId = null;
+            }
+        });
+
+        fetchStudents();
+    </script>
+</body>
+</html>
